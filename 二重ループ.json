@@ -1,0 +1,19 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"x","calc":"0"},
+   {"type":"comment","comment":"2重ループの例","br":false},
+   {"type":"comment","comment":"","br":true},
+   {"type":"for","loop":"i","start":0,"plus":"1","calc":"i < 10","goal":"4","skip":9, "restart": false},
+   {"type":"for","loop":"j","start":0,"plus":"1","calc":"j < 10","goal":"4","skip":8, "restart": false},
+   {"type":"calc","answer":"x","calc":"x + 1"},
+   {"type":"endfor","back":5},
+   {"type":"endfor","back":4},
+   {"type":"end"}
+],
+[
+   {"name":"x","type":"int","value":null},
+   {"name":"i","type":"int","value":0},
+   {"name":"j","type":"int","value":0}
+]
+]

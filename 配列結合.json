@@ -1,0 +1,26 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"x","calc":"0"},
+   {"type":"comment","comment":"擬似的な配列の結合","br":false},
+   {"type":"comment","comment":"","br":true},
+   {"type":"for","loop":"i","start":0,"plus":"1","calc":"i < 5","goal":"5","skip":0},
+   {"type":"calc","answer":"ab[x]","calc":"a[i]"},
+   {"type":"calc","answer":"x","calc":"x + 1"},
+   {"type":"endfor","back":0},
+   {"type":"comment","comment":"","br":true},
+   {"type":"for","loop":"j","start":0,"plus":"1","calc":"j < 5","goal":"5","skip":0},
+   {"type":"calc","answer":"ab[x]","calc":"b[j]"},
+   {"type":"calc","answer":"x","calc":"x + 1"},
+   {"type":"endfor","back":0},
+   {"type":"end"}
+],
+[
+   {"name":"x","type":"int","value":null},
+   {"name":"i","type":"int","value":0},
+   {"name":"j","type":"int","value":0},
+   {"name":"a","type":"intArray","value":[1,2,3,4,5]},
+   {"name":"b","type":"intArray","value":[6,7,8,9,10]},
+   {"name":"ab","type":"intArray","value":[]}
+]
+]

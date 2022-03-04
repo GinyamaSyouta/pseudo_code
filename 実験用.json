@@ -1,0 +1,10 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"test","calc":"2"},
+   {"type":"end"}
+],
+[
+   {"name":"test","type":"int","value":null}
+]
+]

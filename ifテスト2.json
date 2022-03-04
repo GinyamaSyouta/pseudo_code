@@ -1,0 +1,18 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"x","calc":"1"},
+   {"type":"for","loop":"i","start":"0","plus":"1","calc":"i < 10","skip":9,"restart":false},
+   {"type":"if","calc":"x = 1","skip":5},
+   {"type":"calc","answer":"x","calc":"2"},
+   {"type":"else","skip":7,"else":false,"calc":"! ( x = 1 )"},
+   {"type":"calc","answer":"x","calc":"1"},
+   {"type":"endif","back":0},
+   {"type":"endfor","back":2},
+   {"type":"end"}
+],
+[
+   {"name":"x","type":"int","value":null},
+   {"name":"i","type":"int","value":0}
+]
+]

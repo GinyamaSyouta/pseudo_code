@@ -1,0 +1,16 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"x","calc":"1"},
+   {"type":"if","calc":"x = 1","skip":4},
+   {"type":"calc","answer":"result","calc":"1"},
+   {"type":"else","skip":6,"else":false,"calc":"! ( x = 1 )"},
+   {"type":"calc","answer":"result","calc":"2"},
+   {"type":"endif","back":0},
+   {"type":"end"}
+],
+[
+   {"name":"x","type":"int","value":null},
+   {"name":"result","type":"int","value":null}
+]
+]

@@ -1,0 +1,28 @@
+[
+[
+   {"type":"start"},
+   {"type":"comment","comment":"配列初期化","br":false},
+   {"type":"for","loop":"i","start":"0","plus":"1","calc":"i < 10","skip":5,"restart":true},
+   {"type":"calc","answer":"list[i]","calc":"i"},
+   {"type":"endfor","back":2},
+   {"type":"comment","comment":"","br":true},
+   {"type":"calc","answer":"flg","calc":"0"},
+   {"type":"calc","answer":"target","calc":"9"},
+   {"type":"comment","comment":"","br":true},
+   {"type":"comment","comment":"配列内にtargetあり？","br":false},
+   {"type":"for","loop":"j","start":"0","plus":"1","calc":"j < 10","skip":16,"restart":true},
+   {"type":"if","calc":"list[j] = target","skip":14},
+   {"type":"calc","answer":"flg","calc":"1"},
+   {"type":"comment","comment":"発見できたら1を代入","br":false},
+   {"type":"endif","back":0},
+   {"type":"endfor","back":10},
+   {"type":"end"}
+],
+[
+   {"name":"list","type":"intArray","value":[]},
+   {"name":"i","type":"int","value":0},
+   {"name":"j","type":"int","value":0},
+   {"name":"target","type":"int","value":null},
+   {"name":"flg","type":"int","value":null}
+]
+]

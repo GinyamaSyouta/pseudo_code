@@ -1,0 +1,13 @@
+[
+[
+   {"type":"start"},
+   {"type":"for","loop":"i","start":"4","plus":"-1","calc":"i > 0","skip":4,"restart":true},
+   {"type":"calc","answer":"x[i]","calc":"x[i - 1]"},
+   {"type":"endfor","back":1},
+   {"type":"end"}
+],
+[
+   {"name":"x","type":"intArray","value":[1,2,3,4,0]},
+   {"name":"i","type":"int","value":4}
+]
+]

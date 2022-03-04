@@ -1,0 +1,13 @@
+[
+[
+   {"type":"start"},
+   {"type":"for","loop":"i","start":"0","plus":"1","calc":"i < 10","skip":4,"restart":true},
+   {"type":"calc","answer":"list[i]","calc":"i"},
+   {"type":"endfor","back":1},
+   {"type":"end"}
+],
+[
+   {"name":"list","type":"intArray","value":[]},
+   {"name":"i","type":"int","value":0}
+]
+]

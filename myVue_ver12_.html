@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>FE・APアルゴリズム対策</title>
+    <script src=
+      "https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js">
+    </script>
+  </head>
+  
+  <body id="body">
+
+    <div id="app">
+      <div :style="{backgroundColor: myBack}">
+
+        <h1 :style="{color: myColor, fontSize: '200%'}">
+          簡易版アルゴリズム(擬似言語)実行環境構築アプリケーション <br>
+          <span style="font-size: 270%;">RPC</span> (Run the Pseudo Code) 〜心を燃やせ〜
+        </h1>
+        <h3>プロトタイプver</h3>
+
+        <hr>
+
+        <div>
+          <h1>表示するバージョン</h1>
+
+          <label class="feAp">
+            基本情報技術者試験(FE版)
+            <input type="radio" v-on:click="feApChenge('fe')" name="radio1" checked>
+          </label>
+    
+          <label class="feAp">
+            応用情報技術者試験(AP版)
+            <input type="radio" v-on:click="feApChenge('ap')" name="radio1">
+          </label>
+
+          <br>
+
+          <my-img v-if="type == 'fe'"></my-img>
+          <my-img2 v-else></my-img2>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- コード制作 -->
+
+
+        <div>
+          
+          
+          <table border="1" v-if="resetIs">
+            <h1>プログラミングエリア</h1>
+
+            <tr>
+
+              <td>
+                <!-- 変数追加用 -->
+
+                <div>
+                  <h3>変数追加エリア</h3>
+
+                  <p>
+                    <span v-if="!(varType.indexOf('Array') >= 0)">変数名</span>
+                    <span v-else>配列名</span>
+                    <input type="text" v-model="varName">
+                  </p>
+
+                  <p v-if="!(varType.indexOf('Array') >= 0)">
+                    初期値 <input type="text" v-model="varValue" placeholder="未記入だとnull">
+                  </p>
+
+                  <p v-else>
+                    <span>要素数<input type="number" v-model.number="varValueLength"></span><br>
+
+                    <span v-for="item in varValueLength"><br>
+                      添字{{ item - 1 }}番目の要素
+                      <input type="text" v-model="varValueArray[ item - 1 ]">
+                      <br>
+                    </span>
+                  </p>
+
+                  <p>
+                    データの型
+                    <select v-model="varType">
+                      <option>int</option>
+                      <option>float</option>
+                      <option>char</option>
+                      <option>string</option>
+                      <option>boolean</option>
+                      <option>intArray</option>
+                      <option>floatArray</option>
+                      <option>charArray</option>
+                      <option>stringArray</option>
+                      <option>booleanArray</option>
+                    </select>
+                  </p>
+
+                  <button v-on:click="addVar">追加</button>
+                </div>
+              </td>
+
+
+              <td>
+                <!-- 計算式生成 -->
+                <div>
+                  
+                  <h3>式生成エリア</h3>
+      
+                  <p>
+                    <select v-model="op">
+                      <option>+</option>
+                      <option>-</option>
+                      <option>*</option>
+                      <option>/</option>
+                    </select>
+                    <button v-on:click="pushCalc(1)">演算子追加</button>
+                  </p>
+
+                  <p>
+                    <select v-model="op2">
+                      <option>=</option>
+                      <option>&lt;</option>
+                      <option>&gt;</option>
+                      <option>&lt;=</option>
+                      <option>&gt;=</option>
+                      <option>and</option>
+                      <option>or</option>
+                    </select>
+                    <button v-on:click="pushCalc(10)">比較演算子追加</button>
+                    ※if, whileの条件式用
+                  </p>
+      
+                  <p>
+                    <!-- 変数一覧からセレクト -->
+                    <select v-model="x">
+                      <option v-for="item in varList">{{ item.name }}</option>
+                      <option v-if="codeInfoFor[0] && codeType == 'for'">{{ codeInfoFor[0] }}</option>
+                    </select>
+
+                    <button v-on:click="pushCalc(5)">項(変数)追加</button>
+                  </p>
+      
+                  <p>
+                    <input type="number" v-model.number="num">
+                    <button v-on:click="pushCalc(2)">項(数値)追加</button>
+                  </p>
+      
+                  <p>
+                    <button v-on:click="pushCalc(3)">「 ( 」追加</button>
+                    <button v-on:click="pushCalc(4)">「 ) 」追加</button>
+                    ※式のくくりに使用する( )用
+                  </p>
+
+                  <p>
+                    <button v-on:click="pushCalc(8)">「 [ 」追加</button>
+                    <button v-on:click="pushCalc(9)">「 ] 」追加</button>
+                    ※配列の添字格納に使用する[ ]用
+                  </p>
+                  
+                  <p>
+                    <h4>
+                      現在の生成式：
+                      <span v-for="item in myCalc">{{ item }} </span>
+                    </h4>
+                  </p>
+
+
+                  <button v-on:click="pushCalc(6)">一つ前に戻る</button>
+                  <button v-on:click="pushCalc(7)">全て削除</button>
+                </div>
+              </td>
+
+
+              <td>
+                <h3>コード生成エリア</h3>
+
+                <p>
+                  <!-- コードの種類 -->
+                  コード選択
+                  <select v-model="codeType">
+                    <option>calc</option>
+                    <option>if</option>
+                    <option>for</option>
+                    <option>while</option>
+                    <option>comment</option>
+                  </select>
+                </p>
+
+
+                <div v-if="codeType == 'if'">
+                  <hr>
+                  <!-- if用 -->
+                  <p>if文開始・else文</p>
+                  
+                  <p>
+                    条件式：　{{ codeInfoIf[0] }}　<button v-on:click="addCalc(0, 'if')">生成式代入</button>
+                  </p>
+                      
+                  <br>
+      
+                  <button v-on:click="addCode('if')">コード生成(if)</button>
+                  <button v-on:click="addCode('else')">コード生成(else)</button>
+      
+                  <hr>
+      
+                  if文終了<br>
+                  <button v-on:click="addCode('endif')">コード生成(endif)</button>
+                </div>
+      
+                <div v-if="codeType == 'for'"> 
+                  <hr>
+                  <!-- for用 -->
+                  <p>for文開始</p>
+                  <p>変数名 <input type="text" v-model="codeInfoFor[0]"></p>
+      
+                  <p>初期値：　{{ codeInfoFor[1] }}　<button v-on:click="addCalc(1, 'for')">生成式代入</button></p>
+            
+                  <p>
+                    条件式：　{{ codeInfoFor[3] }}　<button v-on:click="addCalc(3, 'for')">生成式代入</button>
+                  </p>
+      
+                  <p>増分：　{{ codeInfoFor[2] }}　<button v-on:click="addCalc(2, 'for')">生成式代入</button></p>
+                  
+                  <br>
+      
+                  <button v-on:click="addCode('for')">コード生成(for)</button>
+      
+                  <hr>
+      
+                  for文終了<br>
+                  <button v-on:click="addCode('endfor')">コード生成(endfor)</button>
+                </div>
+
+                <div v-if="codeType == 'while'">
+                  <hr>
+                  <!-- while用 -->
+                  <p>while文開始</p>
+                  
+                  <p>
+                    条件式：　{{ codeInfoWhile[0] }}　<button v-on:click="addCalc(0, 'while')">生成式代入</button>
+                  </p>
+                      
+                  <br>
+      
+                  <button v-on:click="addCode('while')">コード生成(while)</button>
+      
+                  <hr>
+      
+                  while文終了<br>
+                  <button v-on:click="addCode('endwhile')">コード生成(endwhile)</button>
+                </div>
+
+                <div v-if="codeType == 'calc'">
+                  <hr>
+                  <!-- calc用 -->
+                  <p>calc文開始</p>
+                  
+                  <p>
+                    代入先：　{{ codeInfoCalc[0] }}　<button v-on:click="addCalc(0, 'calc')">生成式代入</button>
+                    <!-- 変数一覧からセレクト -->
+                    <!-- <select v-model="codeInfoCalc[0]" v-on:chenged="addCalc(0, 'calc')">
+                      <option v-for="item in varList">{{ item.name }}</option>
+                    </select> -->
+
+
+                  </p>
+
+                  <p>
+                    式：　{{ codeInfoCalc[1] }}　<button v-on:click="addCalc(1, 'calc')">生成式代入</button>
+                  </p>
+                      
+                  <br>
+
+                  <h4>処理内容：　{{ codeInfoCalc[0] }}　←　{{ codeInfoCalc[1] }}</h4>
+      
+                  <button v-on:click="addCode('calc')">コード生成(calc)</button>
+      
+                  
+                </div>
+
+                <div v-if="codeType == 'comment'">
+                  <hr>
+                  <!-- calc用 -->
+                  <p>comment文</p>
+                  
+                  <p v-if="!brCheck">
+                    コメント内容：　<input type="text" v-model="codeInfoComment[0]" placeholder="コメント">
+                  </p>
+                      
+                  <label>
+                    改行のみにする<input type="checkbox" v-model="brCheck">
+                  </label>
+
+                  <br>
+      
+                  <button v-on:click="addCode('comment')">コード生成(comment)</button>
+      
+                  
+                </div>
+
+              </td>
+
+
+            </tr>
+
+            <tr>
+              <td colspan="3" align="center">
+                <h3>現在の生成コード：　
+                  <span style="color: blue;">{{ nowCode }}</span>
+                </h3>
+
+                <button v-if="codeObj" v-on:click="codePush">末尾に追加</button>
+              </td>
+            </tr>
+          </table>
+
+          <div v-else style="color: red;">
+            プログラミングをする場合はリセットしてください
+          </div>
+
+
+
+
+
+        </div>
+
+
+        <hr>
+        <h1>ファイル保存・読み取りエリア</h1>
+
+        <div v-if="resetIs">
+        <!-- 操作ボタン -->
+        <button :disabled="codeList.length == 0 && varList.length == 0" v-on:click="fileKeep()" style="background-color: lime;">プログラムの保存</button>
+        <input type="text" v-model="fileName" placeholder="保存するファイル名">
+
+        <button v-on:click="test4()" style="background-color: yellow;">ファイルを読み込む</button>
+        <span>{{ selectFile }}</span>
+        <!-- 擬似的にこの黄色いボタンをinput type="file"と見なす -->
+        <!-- spanタグが「ファイル名」の役割 -->
+
+        <input id="inputFile" type="file" v-on:change="fileLoad" style="display: none;">
+        <!-- スタイル調整が困難なためこれは実際には表示しない -->
+        </div>
+
+        <div v-else style="color: red;">
+          ファイル操作をしたい場合はリセットしてください
+        </div>
+
+
+        <hr>
+
+        <!-- 擬似高級言語コード表示 -->
+        <div>
+          <!-- 実行速度インターバル設定 -->
+          <div>
+            <h1>実行エリア</h1>
+
+            <p v-if="compile">
+              インターバル<input type="number" v-model.number="interval">(秒)
+              <button v-if="!doingNow && resetIs" v-on:click="doing" style="font-size: 15px; color: white; background-color: red;">実行</button>
+              <button v-if="!doingNow && !resetIs" v-on:click="resetDo()" style="background-color: aqua;">リセット</button>
+              <button v-if="doingNow" v-on:click="stopDo()" style="background-color: blue; color: white;">実行中断</button>
+            </p>
+            
+            <p v-else>
+              <button :disabled="codeList.length == 0" v-on:click="compiler" style="font-size: 15px; background-color: rgb(255, 150, 0);">コンパイル(表示)</button>
+            </p>
+
+
+
+            <p>{{ tester }}行読み込み済 </p>
+          </div>
+
+          <table border="1">
+            <tr>
+
+
+              <td>
+
+                <h1>擬似言語コード</h1>
+                文字サイズ <input type="number" v-model.number="size1">px
+                <h4 v-if="compile">{{ theCodeNum }}行目を実行中</h4>
+
+                <span v-if="resetIs">
+                  <button v-if="see == true" v-on:click="see = false">操作ボタン非表示</button>
+                  <button v-else v-on:click="see = true">操作ボタン表示</button>
+                </span>
+
+                <span style="color: red;" v-else>
+                  操作ボタンを出す場合はリセットしてください
+                </span>
+      
+                <hr>
+
+                <p :style="{fontSize: size1 + 'px', margin: '0'}" v-for="(item, index) in displayCode">
+
+                  <button v-if="(!(item == 'START' || item == 'END')) && see" v-on:click="codeInsert(index)" class="codeInsert">挿入→</button>
+
+                  <!-- 実行しているコードは赤くする -->
+                  <span v-if="index == theCodeNum && compile" style="color: red; background-color: rgb(192, 232, 248);">
+                    {{ item }}
+                    <br v-if="item.br">
+                  </span>
+      
+                  <!-- 実行していないコードは黒くする -->
+                  <span v-else style="color: black;">
+                    {{ item }}
+                    <br v-if="item.br">
+                  </span>
+
+                  <button v-if="(!(item == 'START' || item == 'END')) && see" v-on:click="codeDelete(index)" class="codeDelete">削除</button>
+
+                </p>
+
+                <p style="color: red;" v-if="codeList.length == 0">コードがありません</p>
+                <p style="color: red;" v-if="!compile && (!codeList.length == 0)">コンパイルが必要です</p>
+
+                <hr>
+
+              </td>
+
+
+              <td>
+                <!-- 変数表示 -->
+                <div>
+                  <h1>変数一覧</h1>
+
+                  1列につき <input type="number" v-model.number="column">個表示
+                  <br>
+
+                  文字サイズ <input type="number" v-model.number="size2">px
+
+                  <hr>
+
+                  <table border="1" v-if="varList.length != 0">
+                    <tr v-for="items in itemList">
+                      <td v-for="item in items" :style="{fontSize: size2 + 'px', margin: '0'}">
+                        変数名：{{ item.name }}<br>
+                        データの型：{{ item.type }}<br>
+                        格納値：{{ item.value }}<br>
+                        <button v-if="resetIs" v-on:click="varDelete(item.name)">削除</button>
+                      </td>
+                    </tr>
+
+                  </table>
+
+                  <p style="color: red;" v-else>変数がありません</p>
+
+                  <hr>
+
+                </div>
+
+              </td> 
+
+
+            </tr>
+          </table>
+
+
+
+        </div>
+
+        <hr>
+
+        <!-- 擬似アセンブラコード表示 -->
+        <div>
+          <h1>[おまけ]内部の擬似アセンブラコード・メモリ表記(JSON形式表記)</h1>
+
+          <table border="1" v-if="!(codeList.length == 0 && varList.length == 0)">
+            <tr>
+              <td>
+                <table border="1">
+                  <caption><h2>擬似コード</h2></caption>
+                  <tr v-for="(item, index) in codeList">
+                    <td>
+                      {{ index }}行目 {{ item }}
+                    </td>
+                  </tr>
+                  
+                </table>
+              </td>
+
+              <td>
+                <table border="1">
+                  <caption><h2>擬似メモリ(変数)</h2></caption>
+                  <tr v-for="(item, index) in varList">
+                    <td>
+                      {{ index + 1 }}個目 {{ item }}
+                    </td>
+                  </tr>
+                  
+                </table>
+              </td>
+            </tr>
+            
+          </table>
+
+          
+        </div>
+
+        <hr>
+
+      </div>
+    </div>
+
+
+    <script>
+      var body = document.getElementById('body'); //bodyタグ(Vue.jsの範囲外のため)
+      body.style.backgroundColor = 'rgb(220, 255, 220)'; //初期化
+
+      var myImg = { //fe版コンポーネント
+        template: '<a href="https://www.fe-siken.com/" target="_blank"><img src="FE画像.png" alt="基本情報"></a>',
+      }
+
+      var myImg2 = { //ap版コンポーネント
+        template: '<a href="https://www.ap-siken.com/" target="_blank"><img src="AP画像.png" alt="応用情報"></a>',
+      }
+
+      var globalCodeNum = 0; //コード行数制御用(初期値は1)
+
+      function log(str) { //コンソールログ表示用(完全なテスト用関数)
+        console.log('>>>>>>>>>> ' + str);
+      }
+
+      
+      /* コピペ
+      var calc_string = "(1 + 2 * (3 + 2)) * 100 ";
+      var result = Function('return ('+calc_string+');')();
+      */
+
+
+      new Vue({
+        el: "#app",
+        data: {
+          doingNow: false, //実行中？
+          see: true, //削除ボタン非表示判定
+          resetIs: true, //リセット済み判定
+          stopIs: false, //中断判定
+
+          brCheck: false, //コメント改行の有無
+
+          column: 2, //テーブル列数
+          size1: 20, //文字サイズ(擬似コードの)
+          size2: 20, //文字サイズ(変数一覧の)
+
+          type: 'fe', //fe か ap
+          myBack: 'rgb(220, 255, 220)', //背景色
+          myColor: 'rgb(0, 170, 0)', //タイトル文章の色
+
+          compile: false, //コンパイル済判定
+          theCodeNum: globalCodeNum,
+
+          varType: 'int', //追加変数のデータ型
+          varName: 'x', //追加変数名
+          varValue: null, //追加変数の初期値
+          varValueArray: [], //追加配列の初期値
+          varValueLength: 5, //配列の初期要素数
+
+          varFor: null, //for専用のオブジェクト
+
+          codeType: '', //コードの種類は?
+          codeInfoFor:['i', '0', '1', 'i < 10'], //forコードに必要な情報格納用
+          codeInfoIf:['(条件式)'], //ifコードに必要な情報格納用
+          codeInfoWhile:['(条件式)'], //whileコードに必要な情報格納用
+          codeInfoCalc:['(代入先)', '(処理)'], //calcコードに必要な情報格納用
+          codeInfoComment:[], //commentコードに必要な情報格納用
+          codeObj: null, //コードオブジェクト格納用
+
+
+          tester: 0, //テスト用 行実行回数
+
+          interval: 0.2, // 一行ごとの実行時間(インターバル)
+          timer: null, // インターバル調整タイマー
+          finish: false, //インターバル0のときの判定用
+          
+
+          codeList: [ //仮想コード格納用
+
+
+          ],//添字が行数を示す
+
+          varList: [ //仮想変数格納用
+
+          ],
+
+          displayCode: [ //ディスプレイ表示用
+            
+          ],
+
+          resetList: [], //初期化用
+
+          //式演算子用
+          op: null, //演算子
+          op2: null, //比較演算子
+          num: null, //項の数値
+          x: null, //式に入る変数
+          answer: null, //代入する変数
+
+          myCalc: [ //ユーザ計算式格納用
+          ],
+
+          madeCalc: [ //myCalcを完成させて格納する
+
+          ],
+
+          selectFile: 'ファイルが選択されていません',
+          fileName: '',
+        },
+
+        components: {
+          'my-img': myImg,
+          'my-img2': myImg2,
+        },
+
+        computed: {
+          itemList: function() { //varListを1配列につき要素clumn個ずつの二次元配列にして返す
+
+            var list = [];
+
+            var j = 0; //調整用
+            var count = 0;
+            list[0] = []; //二次元配列として宣言する
+
+            for(var i = 0; i < this.varList.length; i++) {
+              list[j][count] = this.varList[i];
+
+              count++; //回数追加
+              if(count == this.column) { //列数ごとに配列増加
+                j++;
+                list[j] = []; //二次元配列として宣言する
+                count = 0;
+              }
+
+            }
+
+            return list;
+          },
+        
+
+          nowCode: function() { //codeObjを擬似言語形式にし見やすくする
+            //実態はほぼdecompileメソッド
+
+            var type = this.type;
+
+            var returnStr = '';
+
+            try {
+              if(type == 'fe') { //FE版
+              var cnt = 0; // 「 | (縦線)」の数(入れ子構造管理用)
+              var strBar = ''; // 「 | 」格納用
+
+              strBar = ''; //リセット
+
+                if(this.codeObj.type == 'endif' || this.codeObj.type == 'endfor' || this.codeObj.type == 'endwhile' || this.codeObj.type == 'else') {
+                  cnt--; // 「 | 」削除
+                }
+
+                for(var k = 0; k < cnt; k++) {
+                  if(k == 0) {
+                    strBar = strBar + ""
+                  }
+                  strBar = strBar + '｜ '; //cnt個だけ「 | 」付与
+                }
+
+                if(this.codeObj.type == 'start') {
+                  returnStr = 'START';
+
+                } else if(this.codeObj.type == 'comment') { //comment
+                  if(this.codeObj.br) { //改行？
+                    returnStr = strBar + '　';
+                  } else {
+                    returnStr = strBar + '/*　' + this.codeObj.comment + '　*/';
+                  }
+                  
+                } else if(this.codeObj.type == 'calc') { //calc
+                  returnStr = strBar + '・' + String(this.codeObj.answer) + ' ← ' + String(this.codeObj.calc);
+
+                } else if(this.codeObj.type == 'if') { //if
+                  returnStr = strBar + '▲ ' + String(this.codeObj.calc);
+
+                } else if(this.codeObj.type == 'else') { //else
+                  returnStr = strBar + '------- ';
+
+                } else if(this.codeObj.type == 'endif') { //endif
+                  returnStr = strBar + '▼';
+                  
+                } else if(this.codeObj.type == 'end') { //endif
+                  returnStr = 'END';
+                  
+                } else if(this.codeObj.type == 'for') { //for
+                  returnStr = 
+                  strBar + '■ ' + String(this.codeObj.loop) + ' :　' + String(this.codeObj.start) + ',　'+ String(this.codeObj.calc) + ',　'+ String(this.codeObj.plus);
+
+                } else if(this.codeObj.type == 'endfor') { //endfor
+                  returnStr = strBar + '■';
+                  
+                } else if(this.codeObj.type == 'while') { //while
+                  returnStr = 
+                  strBar + '■ ' + String(this.codeObj.calc);
+
+                } else if(this.codeObj.type == 'endwhile') { //endwhile
+                  returnStr = strBar + '■';
+                  
+                }
+
+
+                if(this.codeObj.type == 'if' || this.codeObj.type == 'for' || this.codeObj.type == 'while' || this.codeObj.type == 'else') {
+                  cnt++; // 「 | 」追加
+                }
+
+              
+
+
+
+            } else { //以下AP版(ほぼ同様の内容)ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+              
+              var cnt = 0; // 空白の数(入れ子構造管理用)
+              var strBar = ''; // 空白格納用
+
+              strBar = ''; //リセット
+
+              if(this.codeObj.type == 'endif' || this.codeObj.type == 'endfor' || this.codeObj.type == 'endwhile'  || this.codeObj.type == 'else') {
+                cnt--; // 空白削除
+              }
+
+              for(var k = 0; k < cnt; k++) {
+                if(k == 0) {
+                  strBar = strBar + ""
+                }
+                strBar = strBar + '　 '; //cnt個だけ空白(字下げ)付与
+              }
+
+              if(this.codeObj.type == 'start') {
+                returnStr = 'START';
+
+              } else if(this.codeObj.type == 'comment') { //comment
+                if(this.codeObj.br) { //改行？
+                  returnStr = strBar + '　';
+                } else {
+                  returnStr = strBar + '//　' + this.codeObj.comment;
+                }
+                
+              } else if(this.codeObj.type == 'calc') { //calc
+                returnStr = strBar + String(this.codeObj.answer) + ' ← ' + String(this.codeObj.calc);
+
+              } else if(this.codeObj.type == 'if') { //if
+                returnStr = strBar + 'if( ' + String(this.codeObj.calc) + ')';
+
+              } else if(this.codeObj.type == 'else') { //else
+                returnStr = strBar + 'else ';
+
+              } else if(this.codeObj.type == 'endif') { //endif
+                returnStr = strBar + 'endif';
+                
+              } else if(this.codeObj.type == 'end') { //endif
+                returnStr = 'END';
+                
+              } else if(this.codeObj.type == 'for') { //for
+                returnStr = 
+                strBar + 'for( ' + String(this.codeObj.loop) + ' :　' + String(this.codeObj.start) + ',　'+ String(this.codeObj.calc) + ',　'+ String(this.codeObj.plus) + ' )';
+                //strBar + 'for( ' + String(this.codeObj.loop) + ' を ' + String(this.codeObj.start) + ' から '+ String(this.codeObj.goal) + ' まで '+ String(this.codeObj.plus) + ' ずつ増やす )';
+
+              } else if(this.codeObj.type == 'endfor') { //endfor
+                returnStr = strBar + 'endfor';
+                
+              } else if(this.codeObj.type == 'while') { //while
+                returnStr = 
+                strBar + 'while( ' + String(this.codeObj.calc) + ' )';
+
+              } else if(this.codeObj.type == 'endwhile') { //endwhile
+                returnStr = strBar + 'endwhile';
+                
+              }
+
+
+              if(this.codeObj.type == 'if' || this.codeObj.type == 'for' || this.codeObj.type == 'while'  || this.codeObj.type == 'else') {
+                cnt++; // 空白追加
+              }
+
+            }
+            } catch(e) {
+              returnStr = "コード未生成";
+
+            }
+
+            return returnStr;
+
+          }
+          
+        },
+
+        methods: {
+          codeDelete: function(index) { //コード削除メソッド
+            for(var i = 0; i < this.codeList.length; i++) {
+              if(i == index) {
+                this.codeList.splice(i, 1); //削除
+              }
+            }
+
+            this.decompile(this.type);
+          },
+
+          codeInsert: function(index) { //コード挿入メソッド
+            var obj = this.codeObj; //挿入用オブジェ
+            this.codeList.splice(index, 0, obj); //途中に挿入
+
+            this.decompile(this.type);
+          },
+          
+          varDelete: function(name) { //指定された変数削除
+            for(var i = 0; i < this.varList.length; i++) {
+              if(this.varList[i].name == name) {
+                this.varList.splice(i, 1); //削除
+              }
+            }
+          },
+
+          resetDo: function() { //リセット用
+            this.reseter();
+            this.resetIs = true; //リセット済み
+          },
+
+          fileKeep: function() { //テスト用
+            var copyCode = []; //アセンブリコードリストコピー用
+            var jsonStr1 = '[\n'; //JSON出力用文字列
+
+            
+            //this.reseter(); //変数格納値初期化
+
+            for(var i = 0; i < this.codeList.length; i++) {
+              copyCode[i] = {...this.codeList[i]}; //オブジェクトコピー
+            }
+
+            for(var j = 0; j < copyCode.length; j++) {
+              var jsonObj = JSON.stringify(copyCode[j])
+
+              if(j == copyCode.length - 1) { //最終ループ？
+                jsonStr1 = jsonStr1 + '   ' + jsonObj + '\n';
+                //JSONファイルの都合上、最後のみカンマ不要のため
+              } else {
+                jsonStr1 = jsonStr1 + '   ' + jsonObj + ',\n';
+              }
+
+            } //copyCode内のオブジェクトを順に文字列化(1つごとに改行、インデントも付与)
+
+            jsonStr1 = jsonStr1 + ']'; //これでオブジェクトの配列を文字列とする
+
+
+            var copyCode2 = []; //変数リストコピー用
+            var jsonStr2 = '[\n'; //JSON出力用文字列
+
+            for(var i = 0; i < this.varList.length; i++) {
+              copyCode2[i] = {...this.varList[i]}; //オブジェクトコピー
+            }
+
+            for(var j = 0; j < copyCode2.length; j++) {
+              var jsonObj2 = JSON.stringify(copyCode2[j])
+
+              if(j == copyCode2.length - 1) { //最終ループ？
+                jsonStr2 = jsonStr2 + '   ' + jsonObj2 + '\n';
+                //JSONファイルの都合上、最後のみカンマ不要のため
+              } else {
+                jsonStr2 = jsonStr2 + '   ' + jsonObj2 + ',\n';
+              }
+
+            } //copyCode2内のオブジェクトを順に文字列化(1つごとに改行、インデントも付与)
+
+            jsonStr2 = jsonStr2 + ']'; //これでオブジェクトの配列を文字列とする
+
+
+            var jsonStr = '[\n' + jsonStr1 + ',\n' + jsonStr2 + '\n]';
+            // codeListとvarListを結合
+
+
+
+
+            /*
+            ここからファイルダウンロード処理
+            */
+
+            var blob = new Blob([jsonStr],{type:"text/plain"}); //jsonStrをファイル形式に変換
+            var link = document.createElement('a');
+
+            link.href = URL.createObjectURL(blob);
+
+            if(this.fileName === '') {
+              this.fileName = '擬似言語ファイル'; //ファイル名指定なしの場合
+            }
+
+            link.download = this.fileName + '.json';
+            link.click();
+
+          },
+
+          test4: function() {
+            var inputFile = document.getElementById("inputFile");
+            inputFile.click();
+          },
+
+          fileLoad: function(e) { //ファイル選択したとき(ファイル読み込み)
+            this.compile = false; //コンパイルが必要になるため
+
+
+            /*
+            ここからほとんどはテキストのコピペ
+            */
+
+            file = e.target.files[0];
+            if(file) {
+              var reader = new FileReader();
+              var vm = this;
+              reader.onload = function(e) {
+                json = JSON.parse(e.target.result);
+                // jsonに目的のオブジェクト保存
+
+                
+                /*
+                ここからのみオリジナル処理ーーーーーーーーーーーーーーーーーーーー
+                */
+
+                vm.displayCode = []; //初期化
+
+
+                vm.codeList = []; //初期化
+                for(var i = 0; i < json[0].length; i++) {
+                  vm.codeList[i] = {...json[0][i]}; //コードオブジェクトコピー
+                }
+
+                vm.varList = []; //初期化
+                for(var i = 0; i < json[1].length; i++) {
+                  vm.varList[i] = {...json[1][i]}; //変数オブジェクトコピー
+                }
+
+                var inputFile = document.getElementById("inputFile"); 
+                var localFileName = String(inputFile.value); //ファイルパス取得
+
+                vm.selectFile = '「 ' + localFileName.split('\\').pop() + ' 」をロードしました'; 
+                // "\"より後のファイル名のみ取得
+
+
+                /*
+                ここまでがオリジナル処理ーーーーーーーーーーーーーーーーーーーーー
+                */
+
+              }
+              reader.readAsText(file);
+            }
+          },
+
+          feApChenge: function(type){ //FE・APバージョン調整メソッド
+            if(type == 'fe') { //feなら
+              this.type = 'fe';
+              this.myBack = 'rgb(220, 255, 220)';
+              this.myColor = 'rgb(0, 170, 0)';
+            } else { //apなら
+              this.type = 'ap';
+              this.myBack = 'rgb(255, 220, 220)';
+              this.myColor = 'rgb(170, 0, 0)';
+            } //背景色と表示するタイプ管理用データ変更
+
+            body.style.backgroundColor = this.myBack; //背景色変更
+            this.decompile(this.type);
+          },
+
+          reseter: function() { //プログラム動作初期化用
+
+            this.theCodeNum = 0;
+            this.varList = []; //初期化
+
+            for(var i = 0; i < this.resetList.length; i++) {
+              
+              this.varList[i] = JSON.parse(JSON.stringify(this.resetList[i])); //オブジェクトコピー
+            }
+          },
+
+          compileCode: function() { //疑似コンパイラメソッド
+            // 手を加える必要があるコードを修正する(コンパイルのようなもの)
+            // 主にif, for, whileの次に進むべき行数指定(skip, back)の調整
+            var code = this.codeList; 
+            //codeがthis.codeListオブジェクトを参照するようにする
+
+            globalCodeNum = 0; //初期化
+            theCodeNum = globalCodeNum;
+            
+
+            /*
+            スタックオブジェクトのクラス
+            */
+            class Stack { //疑似的なスタックオブジェクト
+
+              #value; //スタック本体 (private)
+              #point; //スタックポインタ (private)
+
+              constructor() { // コンストラクタ 
+                this.value = [];
+                this.point = 0;
+              }
+
+
+              pop() {
+                if(this.point > 0) { //ポップすべき値あり？
+                  var ans;
+                  var point = this.point - 1;
+                  ans = (this.value[point]); // ポップ
+                  this.point--;
+                  return ans;
+                } else {
+                  return 'スタックに値がありません';
+                }
+              }
+
+              push(value) {
+                this.value[this.point] = value; // プッシュ
+                this.point++;
+              }
+              
+            }
+            /*
+            スタックオブジェクトのクラス
+            */
+
+
+            ifStack = new Stack();
+            forStack = new Stack();
+            whileStack = new Stack();
+
+
+            for(var i = 0; i < code.length; i++) {
+              if(code[i].type == 'start' || code[i].type == 'end') {
+                code.splice(i, 1); //start, end削除
+              }
+            }
+
+            
+            for(var i = 0; i < code.length; i++) {
+              if(!(code[0].type == 'start')) { //コードにスタートがない
+                code.splice(0, 0, {type: 'start'}); //配列の最初に追加
+              }
+
+              if(!(code[code.length - 1].type == 'end')) { //コードにエンドがない
+                code.push({type: 'end'}); //配列の最初に追加
+              }
+
+              log('コード数: ' + i);
+
+              if(code[i].type == 'if') { //if
+                ifStack.push(i); //プッシュ
+
+              } else if(code[i].type == 'else') { //else
+                var pop = ifStack.pop(); //ポップ
+                ifStack.push(i); //自らをプッシュ
+                code[i].calc = '! ( ' + String(code[pop].calc) + ' )'; //ifの否定条件式付与
+                code[pop].skip = i; //elseにskipするように設定
+                
+                
+              } else if(code[i].type == 'endif') { //endif
+                var pop = ifStack.pop(); //ポップ
+                code[pop].skip = i; //endにskipするように設定
+                
+
+              } else if(code[i].type == 'for') { //for
+                forStack.push(i);
+
+              } else if(code[i].type == 'endfor') { //endfor
+                var pop = forStack.pop(); //ポップ
+                code[pop].skip = (i + 1); //endforの次の行にskipするように設定
+                code[i].back = pop; //forに戻るように設定
+
+              } else if(code[i].type == 'while') { //while
+                whileStack.push(i);
+
+              } else if(code[i].type == 'endwhile') { //endwhile
+                var pop = whileStack.pop(); //ポップ
+                code[pop].skip = (i + 1); //endwhileの次の行にskipするように設定
+                code[i].back = pop; //whileに戻るように設定
+              }
+
+              
+
+            }
+            
+
+            this.decompile(this.type); //コード表示
+            
+          },
+
+          decompile: function(type) { //ユーザが見るに擬似コード変換
+            this.displayCode = [] //初期化
+            copyCode = []; //アセンブリコードリストコピー用
+
+            for(var i = 0; i < this.codeList.length; i++) {
+              copyCode[i] = {...this.codeList[i]}; //オブジェクトコピー
+            }
+
+            if(type == 'fe') { //FE版
+              var cnt = 0; // 「 | (縦線)」の数(入れ子構造管理用)
+              var strBar = ''; // 「 | 」格納用
+
+              for(var j = 0; j < copyCode.length; j++) { 
+
+                strBar = ''; //リセット
+
+                if(copyCode[j].type == 'endif' || copyCode[j].type == 'endfor' || copyCode[j].type == 'endwhile' || copyCode[j].type == 'else') {
+                  cnt--; // 「 | 」削除
+                }
+
+                for(var k = 0; k < cnt; k++) {
+                  if(k == 0) {
+                    strBar = strBar + ""
+                  }
+                  strBar = strBar + '｜ '; //cnt個だけ「 | 」付与
+                }
+
+                if(copyCode[j].type == 'start') {
+                  this.displayCode[j] = 'START';
+
+                } else if(copyCode[j].type == 'comment') { //comment
+                  if(copyCode[j].br) { //改行？
+                    this.displayCode[j] = strBar + '　';
+                  } else {
+                    this.displayCode[j] = strBar + '/*　' + copyCode[j].comment + '　*/';
+                  }
+                  
+                } else if(copyCode[j].type == 'calc') { //calc
+                  this.displayCode[j] = strBar + '・' + String(copyCode[j].answer) + ' ← ' + String(copyCode[j].calc);
+
+                } else if(copyCode[j].type == 'if') { //if
+                  this.displayCode[j] = strBar + '▲ ' + String(copyCode[j].calc);
+
+                } else if(copyCode[j].type == 'else') { //else
+                  this.displayCode[j] = strBar + '------- ';
+
+                } else if(copyCode[j].type == 'endif') { //endif
+                  this.displayCode[j] = strBar + '▼';
+                  
+                } else if(copyCode[j].type == 'end') { //endif
+                  this.displayCode[j] = 'END';
+                  
+                } else if(copyCode[j].type == 'for') { //for
+                  this.displayCode[j] = 
+                  strBar + '■ ' + String(copyCode[j].loop) + ' :　' + String(copyCode[j].start) + ',　'+ String(copyCode[j].calc) + ',　'+ String(copyCode[j].plus);
+
+                } else if(copyCode[j].type == 'endfor') { //endfor
+                  this.displayCode[j] = strBar + '■';
+                  
+                } else if(copyCode[j].type == 'while') { //while
+                  this.displayCode[j] = 
+                  strBar + '■ ' + String(copyCode[j].calc);
+
+                } else if(copyCode[j].type == 'endwhile') { //endwhile
+                  this.displayCode[j] = strBar + '■';
+                  
+                }
+
+
+                if(copyCode[j].type == 'if' || copyCode[j].type == 'for' || copyCode[j].type == 'while' || copyCode[j].type == 'else') {
+                  cnt++; // 「 | 」追加
+                }
+
+              }
+
+
+
+            } else { //以下AP版(ほぼ同様の内容)ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+              
+              var cnt = 0; // 空白の数(入れ子構造管理用)
+              var strBar = ''; // 空白格納用
+
+              for(var j = 0; j < copyCode.length; j++) { 
+
+                strBar = ''; //リセット
+
+                if(copyCode[j].type == 'endif' || copyCode[j].type == 'endfor' || copyCode[j].type == 'endwhile'  || copyCode[j].type == 'else') {
+                  cnt--; // 空白削除
+                }
+
+                for(var k = 0; k < cnt; k++) {
+                  if(k == 0) {
+                    strBar = strBar + ""
+                  }
+                  strBar = strBar + '　 '; //cnt個だけ空白(字下げ)付与
+                }
+
+                if(copyCode[j].type == 'start') {
+                  this.displayCode[j] = 'START';
+
+                } else if(copyCode[j].type == 'comment') { //comment
+                  if(copyCode[j].br) { //改行？
+                    this.displayCode[j] = strBar + '　';
+                  } else {
+                    this.displayCode[j] = strBar + '//　' + copyCode[j].comment;
+                  }
+                  
+                } else if(copyCode[j].type == 'calc') { //calc
+                  this.displayCode[j] = strBar + String(copyCode[j].answer) + ' ← ' + String(copyCode[j].calc);
+
+                } else if(copyCode[j].type == 'if') { //if
+                  this.displayCode[j] = strBar + 'if( ' + String(copyCode[j].calc) + ')';
+
+                } else if(copyCode[j].type == 'else') { //else
+                  this.displayCode[j] = strBar + 'else ';
+
+                } else if(copyCode[j].type == 'endif') { //endif
+                  this.displayCode[j] = strBar + 'endif';
+                  
+                } else if(copyCode[j].type == 'end') { //endif
+                  this.displayCode[j] = 'END';
+                  
+                } else if(copyCode[j].type == 'for') { //for
+                  this.displayCode[j] = 
+                  strBar + 'for( ' + String(copyCode[j].loop) + ' :　' + String(copyCode[j].start) + ',　'+ String(copyCode[j].calc) + ',　'+ String(copyCode[j].plus) + ' )';
+                  //strBar + 'for( ' + String(copyCode[j].loop) + ' を ' + String(copyCode[j].start) + ' から '+ String(copyCode[j].goal) + ' まで '+ String(copyCode[j].plus) + ' ずつ増やす )';
+
+                } else if(copyCode[j].type == 'endfor') { //endfor
+                  this.displayCode[j] = strBar + 'endfor';
+                  
+                } else if(copyCode[j].type == 'while') { //while
+                  this.displayCode[j] = 
+                  strBar + 'while( ' + String(copyCode[j].calc) + ' )';
+
+                } else if(copyCode[j].type == 'endwhile') { //endwhile
+                  this.displayCode[j] = strBar + 'endwhile';
+                  
+                }
+
+
+                if(copyCode[j].type == 'if' || copyCode[j].type == 'for' || copyCode[j].type == 'while'  || copyCode[j].type == 'else') {
+                  cnt++; // 空白追加
+                }
+
+              }
+
+            }
+          },
+
+          calcChenger: function(strCalc) { //文字列(strCalc)になっている式を適切に計算する
+            // 例) strCalc = '10 * (2 + 3)'なら50と返す
+
+
+            /*
+            [ このメソッドのイメージ ]
+            ・仮想擬似言語の式 -> calcChenger(仮想擬似言語の式) -> JavaScriptの式
+            ・ファンクション層のような存在
+
+            このメソッドを利用する際、文字列計算式(strCalc)の演算子や項の間は必ず半角スペースをはさむこと
+             
+             正しい例) "2 * (x + array[i + 1])"
+             誤った例) "2*(x+array[i+1])"
+
+             ※ただし「 [ 」の1つ次、前の要素または「 ] 」の1つ前の要素のみ半角スペースをはさまない
+            */ //goal
+
+
+            var returnAns; //返却値用
+            var calc = [];
+            var selectName; // varList検索用
+
+            var i2 = 0 //スペースごとに区切る添字用
+            var stop = false; //これにより[]内のスペースは無視させる
+
+
+
+            /*
+            特殊文字置き換え
+            */
+            strCalc = strCalc.split('or').join('||');  //orの翻訳
+            strCalc = strCalc.split('and').join('&&');  //andの翻訳
+            strCalc = strCalc.split('=').join('==');  //=の翻訳
+
+
+
+            for(var i = 0; i < strCalc.length; i++) { //スペース区切りで演算子と項を格納
+              if(strCalc[i] == ' ' && !stop) { //スペース発見かつ[]内部でない
+                i2++; //次の要素へ
+              } else {
+
+                if(strCalc[i] == '[') { //[]内部開始
+                  stop = true;
+                }
+
+                if(strCalc[i] == ']') { //[]内部終了
+                  stop = false;
+                }
+
+                if(!calc[i2]) { //calc[i2]はnullでない
+                  calc[i2] = strCalc[i]; //演算子or項格納
+                } else {
+                  calc[i2] = calc[i2] + strCalc[i]; //演算子or項格納
+                }
+
+              }
+            }
+
+              
+            for(var l = 0; l < calc.length; l++) { //計算式内部の変数を具体的な数値に変換
+
+              if(calc[l].indexOf('[') >= 0) { //配列要素あり？
+                selectName = calc[l].substr(0, calc[l].indexOf('['));
+                // 例)calc[l]が'array[0]'なら検索すべき変数名を添字のみトリムし'array'とする
+              } else {
+                selectName = calc[l];
+                // 通常の変数はそのまま検索すべき変数名として格納
+              }
+
+              for(var m = 0; m < this.varList.length; m++) {
+                if(this.varList[m].name == selectName) { //varListの中にある変数が計算式にあった？
+                  calc[l] = this.getValue(calc[l]); //適切な値に変換
+                }
+              }
+            }
+
+            log(globalCodeNum + "行目の文字列変換用配列: " + calc);
+
+            var calc_string = ""; //初期化
+              
+            for(var k = 0; k < calc.length; k++) {  
+              calc_string = calc_string + String(calc[k]);//配列を文字列に
+            }
+              
+
+            try {
+              returnAns = Function('return (' + calc_string + ');')(); 
+              //文字列を式と見なし計算
+              //※この部分は外部からのコピペ
+
+            } catch(e) { //もし計算式として扱えないなら 　例)　文字列データなどの代入時
+              log("エラーメッセージ" + e.message);
+
+              if(String(e.message).indexOf('is not defined') >= 0) { 
+                //数値以外のデータを入れるとき
+                returnAns = String(calc_string); //そのまま
+              }
+            }
+
+
+
+            return returnAns;
+          },
+
+          compiler: function() { //コンパイル(実行可能状態にする)
+            //alert('コンパイル');
+            this.compile = true;
+            this.compileCode();
+          },
+
+          pushCalc: function(what) { //計算式要素追加
+            
+            switch(what) {
+              case 1: //演算子
+                this.myCalc.push(this.op);
+                break;
+              case 2: //数値
+                this.myCalc.push(this.num);
+                break;
+              case 3: // 「 ( 」
+                this.myCalc.push('(');
+                break;
+              case 4: // 「 ) 」
+                this.myCalc.push(')');
+                break;
+              case 5: // 変数追加
+                this.myCalc.push(this.x);
+                break;
+              case 6: // 一つ削除
+                this.myCalc.splice(this.myCalc.length - 1, 1);
+                break;
+              case 7: // 全て削除
+                this.myCalc = [];
+                break;
+              case 8: // 「 [ 」
+                this.myCalc.push('[');
+                break;
+              case 9: // 「 [] 」
+                this.myCalc.push(']');
+                break;
+              case 10: // 比較演算子追加
+                this.myCalc.push(this.op2);
+                break;
+            }
+          },
+
+          setValue: function(theName, theValue) { 
+            //theNameと同じ名前の変数のデータにtheValueを代入
+
+            var index = ''; //配列だった場合の添字格納用
+
+            if(theName.indexOf('[') >= 0) { //配列の添字指定あり？
+
+              for(var l = theName.indexOf('[') + 1; l < theName.indexOf(']'); l++) {
+                index = index + theName[l];
+                //添字のみを取り出す 例)array[123]ならindexには123が格納される
+                //例2) array[i + 1]ならindexには'i + 1'が格納される
+              }
+
+              index = this.calcChenger(index); //文字列を式と見なし計算
+
+              index = Number(index); //数値にする
+
+              theName = theName.substr(0, theName.indexOf('['));
+              // 例)theNameが'array[0]'なら'array'とする
+            }
+
+            for(var i = 0; i < this.varList.length; i++) {
+              if(this.varList[i].name == theName) {
+                if(!(index === '')) { //添字が存在する？(取り出すのは配列であるか？)
+                  //厳密な比較により0も添字とする
+
+                  this.varList[i].value[index] = theValue;
+
+                  log('ab[' + index + ']: '+this.varList[i].value[index]);
+
+                } else { //配列でなく通常の変数
+                  this.varList[i].value = theValue; //変数があったらそこにset
+                }
+              }
+            }
+
+            /*for(var i = 0; i < this.varList.length; i++) {
+              if(this.varList[i].name == theName) {
+                this.varList[i].value = theValue;
+              }
+            }*/
+          },
+
+          getValue: function(theName) { //theNameと同じ名前の変数及び配列のデータを返す
+          // theName = 'array[1]' とあればそのままarray[1]の中身を返す
+          // なおtheNameが数値ならそのまま返す 例) x = getValue(2)ならx = 2
+
+            theName = String(theName);
+
+            var returnValue = null; //返却値格納用
+            var index = ''; //配列だった場合の添字格納用
+            var theNameIsNum = true; // theNameが数値でないか
+
+            if(theName.indexOf('[') >= 0) { //配列の添字指定あり？
+
+              for(var l = theName.indexOf('[') + 1; l < theName.indexOf(']'); l++) {
+                index = index + theName[l];
+                //添字のみを取り出す 例)array[123]ならindexには123が格納される
+                //例2) array[i + 1]ならindexには'i + 1'が格納される
+              }
+
+              index = this.calcChenger(index); //文字列を式と見なし計算
+
+              index = Number(index); //数値にする
+
+              theName = theName.substr(0, theName.indexOf('['));
+              // 例)theNameが'array[0]'なら'array'とする
+            }
+
+
+
+            for(var i = 0; i < this.varList.length; i++) {
+              if(this.varList[i].name == theName) {
+                if(!(index === '')) { //添字が存在する？(取り出すのは配列であるか？)
+                  //厳密な比較により0を添字ありと認識させる
+
+                    returnValue = this.varList[i].value[index];
+                    theNameIsNum = false; //数値ではない
+
+                } else { //配列でなく通常の変数
+                  returnValue = this.varList[i].value; //変数があったらそれの中身を返す
+                  theNameIsNum = false; //数値ではない
+                }
+              }
+            }
+
+            if(theNameIsNum) {
+              if(isNaN(theName)) {
+                returnValue = theName; //数値以外の特殊文字(&&や||、trueなど)、(かつ または 真)
+              } else {
+                returnValue = Number(theName); //数値だったとき
+              }
+            }
+
+            return returnValue;
+          },
+
+          addVar: function() {
+            if(this.varType == 'int') {
+              if(this.varValue === null) { //初期値なし？
+                this.varValue = null;
+              } else {
+                this.varValue = parseInt(this.varValue);
+              }
+              //整数型の場合整数値に変換
+            }
+
+            
+
+            if(this.varType.indexOf('Array') >= 0) { //配列追加？
+              for(var i = 0; i < this.varValueArray.length; i++) {
+                if(!(isNaN(this.varValueArray[i]))) {
+                  this.varValueArray[i] = Number(this.varValueArray[i]);
+                }
+              }
+              this.varList.push({name: this.varName, type: this.varType, value: this.varValueArray});
+              //配列追加(宣言)
+            } else {
+              this.varList.push({name: this.varName, type: this.varType, value: this.varValue});
+              //変数追加(宣言)
+            }
+
+            this.varValue = null; //リセット
+            this.varName = null;
+
+          },
+
+          addCalc: function(index, type) { //生成式をコードの要素としてコピー
+
+            var calcString = ''; //初期化
+            for(var i = 0; i < this.myCalc.length; i++) {
+              if(i == this.myCalc.length - 1) { //最後の文字のみスペース無し
+                calcString = calcString + String(this.myCalc[i]);
+              } else {
+                calcString = calcString + String(this.myCalc[i]) + ' ';
+              }
+            }
+
+            calcString = calcString.split(' [ ').join('['); //配列の[]の一つ隣の要素のみスペース無し
+            calcString = calcString.split(' ]').join(']'); 
+
+            if(type == 'for') {
+              this.codeInfoFor.splice(index, 1, calcString);
+            } else if (type == 'if') {
+              this.codeInfoIf.splice(index, 1, calcString);
+            } else if (type == 'while') {
+              this.codeInfoWhile.splice(index, 1, calcString);
+            } else if (type == 'calc') {
+              this.codeInfoCalc.splice(index, 1, calcString);
+              
+            }
+
+          },
+          
+          addCode: function(codeCase) { //行追加
+            this.compile = false; //コンパイルが必要になるため
+
+            switch(codeCase) {
+              case 'for': //for開始文
+                this.codeObj = 
+                  {type: 'for',
+                  loop: this.codeInfoFor[0], //変数名
+                  start: this.codeInfoFor[1], //初期値
+                  plus: this.codeInfoFor[2], //増分
+                  calc: this.codeInfoFor[3], //条件式
+                  skip: 0,
+                  restart: false
+                  }
+                ;
+
+
+
+                this.varName = this.codeInfoFor[0];
+                this.varType = 'int';
+                this.varValue = this.getValue(this.codeInfoFor[1]);
+
+                this.varFor = {
+                  "name":this.varName,
+                  "type":this.varType,
+                  "value":this.varValue};
+
+                break;
+              case 'endfor': //for終了文
+                this.codeObj = {type: 'endfor', back: 0};
+                break;
+              case 'calc': //計算
+
+
+                this.codeObj = 
+                  {type: 'calc', // 　　例)                  x = x + 3
+                  answer: this.codeInfoCalc[0], // この部分→「x」 = x + 3
+                  calc: this.codeInfoCalc[1]} // 　　　　     x = 「x + 3」←この部分
+                ;
+                break;
+              case 'if': //if開始文
+
+                this.codeObj = {type: 'if', calc: this.codeInfoIf[0], skip: 0};
+                break;
+              case 'else': //else文
+
+                this.codeObj = {type: 'else', skip: 0, else: false};
+                break;
+              case 'endif': //if終了文
+
+                this.codeObj = {type: 'endif', back: 0};
+                break;
+              case 'while': //while開始文
+
+                this.codeObj = {type: 'while', calc: this.codeInfoWhile[0], skip: 0};
+                break;
+              case 'endwhile': //while終了文
+
+                this.codeObj = {type: 'endwhile', back: 0};
+                break;
+              case 'comment': //コメント
+
+                if(this.brCheck) { //改行のみ
+                  this.codeObj = {type: 'comment', comment: '', br: this.brCheck};
+                } else { //通常のコメント
+                  this.codeObj = {type: 'comment', comment: this.codeInfoComment[0], br: this.brCheck};
+                }
+                break;
+            
+            }
+
+            this.decompile(this.type); //追加と同時に表示
+
+          },
+
+          codePush: function() { //末尾に追加用
+            if(this.codeObj.type == 'for') { //forのみ変数追加必要 
+              this.varList.push(this.varFor);
+            }
+            
+            this.codeList.push(this.codeObj); //追加
+
+            this.decompile(this.type);
+          },
+
+          tymeUp: function() { //テスト用
+            this.tester++;
+            if(this.tester < 5) {
+              clearInterval(this.timer);
+            }
+          },
+
+          stopDo: function() {
+            clearInterval(this.timer);
+            this.stopIs = true; //実行中断命令
+            this.reading(); //中断用に実行
+          },
+
+          doing: function() {
+
+            try {
+              this.see = false; //ボタン非表示
+
+              this.resetIs = false; //リセット必要に
+
+              this.doingNow = true;
+
+              this.finish = false; //即時実行終了判定リセット
+
+              this.compiler(); //強制コンパイル
+
+              globalCodeNum = 0;
+
+              this.resetList = []; //初期化
+
+              for(var i = 0; i < this.varList.length; i++) { //初期値をresetListに退避しておく
+                this.resetList[i] = JSON.parse(JSON.stringify(this.varList[i])); //オブジェクトコピー
+              }
+
+
+              if(this.interval == 0) {
+                while(!this.finish) { //インターバル0秒(即時実行)
+                  this.reading(globalCodeNum);
+                }
+              } else {
+                this.timer = setInterval(() => {this.reading(globalCodeNum)}, (this.interval * 1000) );
+                // interval秒ごとにコードを１行読み込み実行
+              }
+
+              
+            } catch(e) {
+              alert("コードに何らかの異常があります。");
+            }
+          },
+
+          //一行読み実行
+          reading(codeNum) {// codeNumは読み込むコードの行数を示す
+            this.tester++; //テスト用(何回readingを呼び出した？)
+
+            this.theCodeNum = codeNum;
+
+            if(this.stopIs) { //中断命令あり？
+              clearInterval(this.timer);
+              this.doingNow = false;
+              this.finish = true;
+              this.tester = 0;
+              globalCodeNum = 0; //中断
+              this.codeNum = globalCodeNum;
+              this.stopIs = false; //元に戻す
+              return ;
+            }
+
+            if(this.codeList[codeNum].type == 'if') {
+              //if文のとき
+              if(this.calcChenger(this.codeList[codeNum].calc)) { //if文で真のとき
+                globalCodeNum = codeNum + 1; //そのままifの中へ
+
+              } else { //if文で偽のとき
+                if(this.codeList[this.codeList[codeNum].skip].type == 'else') {
+                  this.codeList[this.codeList[codeNum].skip].else  = true;
+                  //elseをtrueにする
+                }
+                globalCodeNum = this.codeList[codeNum].skip; // elseまたはendifへ
+              }
+
+
+            } else if(this.codeList[codeNum].type == 'else') {
+              //else文のとき
+              if(this.codeList[codeNum].else) { //上のif文で偽のとき
+                globalCodeNum = codeNum + 1; //そのままelseの中へ
+                this.codeList[codeNum].else = false;
+              } else { //上のif文で真のとき
+                globalCodeNum = this.codeList[codeNum].skip; // endifへ
+              }
+
+            } else if(this.codeList[codeNum].type == 'endif') {// if終了
+              globalCodeNum = codeNum + 1;//次の行へ
+
+            } else if(this.codeList[codeNum].type == 'while') {
+              //whileループ開始行
+
+              if(this.calcChenger(this.codeList[codeNum].calc)) { //while文で真のとき
+                globalCodeNum = codeNum + 1; //そのままwhileの中へ
+
+              } else { //while文で偽のとき
+                globalCodeNum = this.codeList[codeNum].skip; // endwhileへ
+              }
+
+            } else if(this.codeList[codeNum].type == 'endwhile') {
+              //whileループ終端行
+
+              globalCodeNum = this.codeList[codeNum].back;
+              //ループ開始行に戻る
+
+            } else if(this.codeList[codeNum].type == 'for') {
+              //forループ開始の行、ループ判定
+              
+              if(this.calcChenger(this.codeList[codeNum].calc) || this.codeList[codeNum].restart) { 
+                //for文で真のとき、または一度抜けてから再びループに戻ってきた時
+
+                if(this.codeList[codeNum].restart) { //再開の場合
+                  this.setValue(this.codeList[codeNum].loop, this.codeList[codeNum].start);
+                  log('初期化');
+                  //初期値に戻す
+                }
+
+                this.codeList[codeNum].restart = false; //再開のときはfalseに
+                globalCodeNum = codeNum + 1; //そのままforの中へ
+
+              } else { //for文で偽のとき
+                // this.setValue(this.codeList[codeNum].loop, this.codeList[codeNum].start);
+                this.codeList[codeNum].restart = true; 
+                //次回、再びこのループに戻ってきた時は入れるようにする
+                globalCodeNum = this.codeList[codeNum].skip; // endforの次へ
+              }
+
+            } else if(this.codeList[codeNum].type == 'endfor') {
+              //ループ終端行
+
+              // setValue(ループ変数, ループ変数 + 増分)
+              this.setValue(this.codeList[this.codeList[codeNum].back].loop, 
+                Number(this.getValue(this.codeList[this.codeList[codeNum].back].loop))
+                 + 
+                 Number(this.getValue(this.codeList[this.codeList[codeNum].back].plus))
+              );
+              // ループ変数にループ変数 + 増分をセットする, 例)for(i = 0; i < 10; i++)のi++の部分
+
+              //「this.codeList[this.codeList[codeNum].back]」はループ開始行オブジェクトを示す(for(コード)のところ)
+
+              globalCodeNum = this.codeList[codeNum].back;
+              //ループ開始行に戻る
+
+
+            } else if(this.codeList[codeNum].type == 'calc') {
+              //計算部
+
+              var setter = this.calcChenger(this.codeList[codeNum].calc);
+
+              this.setValue(this.codeList[codeNum].answer, setter);
+              //代入
+              globalCodeNum = codeNum + 1;
+              //次の行へ
+
+            } else if(this.codeList[codeNum].type == 'comment') { //コメント
+              
+
+              globalCodeNum = codeNum + 1;
+              //次の行へ
+
+            } else if(this.codeList[codeNum].type == 'end') {
+              // 最後の行(プログラム終了)
+              clearInterval(this.timer);
+              this.doingNow = false;
+              this.finish = true;
+              this.tester = 0;
+              globalCodeNum = 0;
+            } else if(this.codeList[codeNum].type == 'start') {
+              // 最初の行(プログラム開始)
+              globalCodeNum = codeNum + 1;
+            }
+          }
+        }
+      })
+    </script>
+
+
+
+
+
+    <style>
+      div {
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      td {
+        padding: 15px;
+      }
+      
+      table {
+        margin: 15px;
+      }
+
+      button {
+        height: 30px; width: 150px;
+        margin: 5px;
+      }
+
+      .codeDelete {
+        width: 50px;
+        margin: 0;
+      }
+
+      .codeInsert {
+        width: 75px;
+        margin: 0;
+        position: relative;
+        top: -15px;
+      }
+
+      #file {
+        cursor: pointer;
+      }
+
+      .feAp {
+        margin-right: 80px;
+      }
+
+      img {
+        height: 250px;
+        width: 250px;
+        margin: 10px;
+      }
+    </style>
+    
+  </body>
+</html>

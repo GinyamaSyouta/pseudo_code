@@ -1,0 +1,20 @@
+[
+[
+   {"type":"start"},
+   {"type":"calc","answer":"cntA","calc":"0"},
+   {"type":"calc","answer":"cntB","calc":"0"},
+   {"type":"for","loop":"i","start":"0","plus":"1","calc":"i < 10","skip":10,"restart":true},
+   {"type":"if","calc":"i > 4","skip":6},
+   {"type":"calc","answer":"cntA","calc":"cntA + 1"},
+   {"type":"else","skip":8,"else":false,"calc":"! ( i > 4 )"},
+   {"type":"calc","answer":"cntB","calc":"cntB + 1"},
+   {"type":"endif","back":0},
+   {"type":"endfor","back":3},
+   {"type":"end"}
+],
+[
+   {"name":"cntA","type":"int","value":null},
+   {"name":"cntB","type":"int","value":null},
+   {"name":"i","type":"int","value":0}
+]
+]
